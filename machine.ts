@@ -267,7 +267,7 @@ export const machine = createMachine(
     types: {
       events: {} as {
         type: "Submit";
-        SSN: number;
+        SSN: string;
         lastName: string;
         firstName: string;
       },
