@@ -33,3 +33,40 @@ export async function determineMiddleScore(scores: number[]) {
     return scores[1];
 
 }
+
+export async function checkReportsTable ({ssn, bureauName}: {ssn: string, bureauName: string}) {
+    // this is where we would check the database to see if we have a report for this user
+    // for now, we will just return a boolean
+    return false;
+}
+
+// simulates a potentially long-running call to a bureau service
+// returns a random number representing a credit score between 300 and 850
+export async function checkBureauService ({ssn, bureauName}: {ssn: string, bureauName: string}) {
+
+
+    switch (bureauName) {
+        case 'GavUnion':
+            await sleep(range({min: 1000, max: 10000}));
+            return range({min: 300, max: 850});
+        case 'EquiGavin':
+            await sleep(range({min: 1000, max: 10000}));
+            return range({min: 300, max: 850});
+        case 'Gavperian':
+            await sleep(range({min: 1000, max: 10000}));
+            return range({min: 300, max: 850});
+    }
+}
+
+
+function sleep(ms: number) {
+    return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
+  }
+
+  function range({min, max}: {min: number, max: number}) {  
+    return Math.floor(
+      Math.random() * (max - min) + min
+    )
+  }
