@@ -7,6 +7,7 @@ const userCredentialSchema = z.object({
     
 });
 
+
 export type userCredential = z.infer<typeof userCredentialSchema>;
 
 // this would be a great place to lookup the user in a database and confirm they exist
@@ -55,6 +56,18 @@ export async function checkBureauService ({ssn, bureauName}: {ssn: string, burea
     }
 }
 
+// this can indeed be a very long-running service, typically one that won't be local to the application
+export async function generateInterestRate (creditScore: number) {
+    await sleep(range({min: 1000, max: 10000}));
+    if (creditScore > 700) {
+        return 3.5;
+    } else if (creditScore > 600) {
+        return 5;
+    } else {
+        return 200;
+    }
+}
+
 
 function sleep(ms: number) {
     return new Promise((resolve) => {
@@ -62,7 +75,7 @@ function sleep(ms: number) {
     });
   }
 
-  function range({min, max}: {min: number, max: number}) {  
+function range({min, max}: {min: number, max: number}) {  
     return Math.floor(
       Math.random() * (max - min) + min
     )
