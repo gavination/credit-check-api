@@ -9,10 +9,11 @@ const userCredentialSchema = z.object({
 
 export type userCredential = z.infer<typeof userCredentialSchema>;
 
+// this would be a great place to lookup the user in a database and confirm they exist
+// for now, we will just validate the input and return it
 export async function verifyCredentials (credentials: userCredential) {
     try{
-        // this would be a great place to lookup the user in a database and confirm they exist
-        // for now, we will just validate the input and return it
+
         userCredentialSchema.parse(credentials);
         return credentials;
     }
@@ -22,14 +23,10 @@ export async function verifyCredentials (credentials: userCredential) {
         throw new Error(errorMessage);
     }
 }
-
+// given an array of 3 scores, return the middle score
+//remember, it's not production code, it's a sample!
 export async function determineMiddleScore(scores: number[]) {
-    // given an array of 3 scores, return the middle score
-
-    // sort the array
     scores.sort();
-
-    // return the middle score
     return scores[1];
 
 }
