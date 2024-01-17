@@ -58,21 +58,23 @@ app.post("/workflows/:workflowId", async (req, res) => {
     state: restoredState?.persistedState,
   }).start();
 
-  console.log("state", restoredState?.persistedState);
+  console.log("old state", restoredState?.persistedState);
 
   actor.send(event);
 
   // @ts-ignore
   // Capture and save state after the event is sent and machine transitions
   const persistedState = actor.getPersistedSnapshot();
-  const result = await collections.machineStates?.updateOne(
+
+  console.log("new state", persistedState);
+
+  const result = await collections.machineStates?.replaceOne(
     {
       workflowId,
     },
     {
-      $set: {
-        persistedState,
-      },
+      workflowId,
+      persistedState,
     }
   );
   actor.stop();
@@ -82,7 +84,7 @@ app.post("/workflows/:workflowId", async (req, res) => {
     return res.status(500).send("Error sending event to workflow");
   }
 
-  res.status(200).send("Event received. Issue a GET request to see the state");
+  res.status(201).send("Event received. Issue a GET request to see the state");
 });
 
 // Endpoint to get the current state of an existing workflow instance
