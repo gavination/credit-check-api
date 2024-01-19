@@ -1,6 +1,6 @@
 import * as mongoDB from "mongodb";
 import { AnyStateMachine, createActor } from "xstate";
-import { creditCheckMachine } from "./machine";
+import { creditCheckMachine } from "../machine";
 
 export const collections: { machineStates?: mongoDB.Collection } = {};
 
@@ -73,7 +73,7 @@ export async function getDurableActor({
 
       if (!result?.acknowledged) {
         throw new Error(
-          "Error persisting actor state. Verify db connection is configured correctly.",
+          "Error persisting actor state. Verify db connection is configured correctly."
         );
       }
     },

@@ -1,6 +1,10 @@
 import { Snapshot, createActor } from "xstate";
 import bodyParser from "body-parser";
-import { collections, getDurableActor, initDbConnection } from "./actorService";
+import {
+  collections,
+  getDurableActor,
+  initDbConnection,
+} from "./services/actorService";
 import express from "express";
 import { creditCheckMachine } from "./machine";
 import { get } from "http";
