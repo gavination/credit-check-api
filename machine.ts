@@ -60,7 +60,7 @@ export const creditCheckMachine = setup({
     },
   },
 }).createMachine({
-  /** @xstate-layout N4IgpgJg5mDOIC5QFsCuAbALgSwA7rAGEAnSbTQgCzAGMBrAOhtInKtsYFEA7TMY7NygACAJLcAZgHtiyAIY4p3AMQBlVACNk5ANoAGALqJQuKbHLYlxkAA9EAZgAcAVgYB2ACwAmAIyO3zgA0IACeiD5ueu4AbM7RXs4AvonBaFh4BCRkFNT0TCxsuYwAavzYEiGCIlkQYLzYcuiwyvzEMgz4CtKyDGk4+EQFORz52ex5pQIVVcI1dTiNsAiCAG5SNAqW3PoGO9am5orc1nYIHgy+-kGhDnpeF44AnHrxSSkgfRmDY0WjrMN5cZ0Ko1ciqGgyODKCBKMAMWCYBRwz4DUEAxjMH4jIEgobgyGwPZIEAHCxWYmnLweHznLyxV7BMIIRwvBg+exeRw+BLJVIYfqZIZAv6FbFFXHZfGkZow7hwhFI3r8r5o4WY-7CnFCNFSuA6HxGYmko4nRCeewMbw+R40rx6PRuaL+RkOR4MaIcrk894owVYvLq0WA8XavEQ6UMLVQTgAR1Q2AA4nIVoJIyGoAAxGScGzYBFVABKYFMxEw0NhDFWUjocLAccTycEABEAEIAQRomBkRJMZjJxwpZvs5wCbi91yZ3OcI7efPSqKFv0D6LTHAl-11sFX9CqsfjSZT3G3wKEWeIObzOCERZLZdlcKrNYYdf3je4rY7XeI+sNvcOW1NBA3GHdxnDHKcXQQGkHQuWcPmVBd-QxRcxTXUNJXDOBj13esD1TKMzwvfNr2LGQy1adpOkwbpkGfXC3w-Ttu0MfY+xNQcgJA0dx0gnxnGcPReXg+c-Q1JcUODNCoB1TCtyjPcG0PBgMzATAaEoQtSNLcs5Urbg1ifF9FMEFS1MoT9mN-Ek2IAjiaRA5xHnsAJeOcjwhN9b4xJGZdNXTGSCWwoQFLwo9TPUzTbxaYg2mIDp0C6GRaKM0LwvMpjvxYo0bPJUBTns85HOcidwitBg4M81VxKQoLpLDQKowPABVbgtlqwjc2IqAbzInSH306s4SgZMWq2Rivx7az-1y2whx8UDwISXi3B8aJYI8hDRKDZCaqjAKI0akbWqUdrs06q9uq0u8K0fIajrG9sMp-VjpoHPK5oWnibigxwnVAjaRK87aRRXPb6oO9NmuOo8CLOy9It6ii4qomiGGGlZRqUcbLJe-tAOA+buIg767R8eaKs2oGV1834wYwhrIfuk60oR7T7z0gy7ox6G0oszKrONWz3qg7xXGcFwnJc76-HsMWAYFKm1Qkxg6Y3WTaqhtqWZIqKkfixKenRzHuF5p6sr-PG7NF8qJeK3jHEcex5ZVZWQb8qT9qww6VlwMo5Bh9MOvhnXevZ260eTX2BH9oE+cmwWZtOAJzi+pk3Cc9afUpqqfNd1WwXV72o4aAOpKDrqerZm6BqfdHi5joo44NXH2OF5OGFTxBHg8VwAmdxDvIDPP-PBr3GZ9v3S53U84Yrq7oti-XqKSiOJ+j7hY7NgWcre2agOnDvicnPQHfK-utup4ePdHuTx-rsLVIikOq908P1I4A8AAVJ7j82pst4WNIxyWjtt9G09wKaAxzkPXaI96YQykgee+ylH4aWfuRGKlEErLx6O-egX8f5bxbkLPeQDHAgKlkyR40RBJZyga7GmIwmyqX4NoVqQhxB8GlJgAsSIADyuAjhbmYVwthVQACy2AIAQAILqPqHNBoKJrAAWg0BAAAVugZA8cd6ATpJEdww5QGTicG4f6dCFbQJ2oPRgIjWGCCqJw-gcAeH8MEVsLc2tupIhlNXTmSp6E1UYXkOxsgHEcN4M4hEvC+ACKESgsyhYfHLAGhsI4OwdGvUAvYbk5xojRA8C8Ja0tTHmPeNwKQtR4DEkqsrYhidEDKJtO4TuCBlHslcHodkJ97D2EeI7O0-hz6K2qjY+pu9TjKI8BaRaJU2keDMdEZ4HSPAeBtDQ1ZwyrFu1+DwLhMxxA0U2DNBOEyhzuk9EfcIjl3TejnJYhhrtJjlEqEIWYLB5gNCaOMwC0QfBRCeI4aZlCHDRDMQ6Lw6z8nQrBVsx5sDr7wLgD8jiCQzGODtDk4pTJ+IjkdHxJymKXhOwsS7IJV9p51SRbfKSIU3wouFvYPQrgMV6CxXMsmYLLR0nWZCx4bg6SODheShFlLPY0spXSpSsNzznVZpgBle9ZYWlZey3iAlzhTmFTYnZqExU31qlK1MXjCBSGQAMPgir8pgqiGsy4IKoK9PuH3UlA9gbBJVnAtWDNaX0SUl4yuCrspZLsj08qszXIYvMfcslOqPW1XFYav1xrUFVAzHIbABAIBWvCDay0jx7UcoEuQl1Ma3WX1FSeKl3qEGUs1ic3RHEmUssxVcqC8RyEFpWs8ewHpIXuVdRfJWlb1wFx9XWpmU8q3lwuoGnNCBlUd1bdi8I1DXCvG1e6ilVbE3e2Ngkp+0kzUWrAPO1a4tLRAuMeEdOtJIEPJFTq-OmBNwa0nQetBl1bxnodGYsCbK21+FWZnMtQ7RnA2fa+vd0MP1pozVms9sRyEeCvQ660Bi7nCQfXG7do6X2FzvpPedzal0AZXUBZlDAu3WjZX2pyjxN0VqfV6sdtaq1IMnqdWVwcv1kWI84FVy6OV6G8Lc+9sat0jvQjWseiDI6cZNcegglrg0ANIStchDpWn+Hmph2pj6IMsfw+O9j8n16wfQWe7kFowXUKuJBAtunxPluHcxxFMmJWmbXiXCzmZ4OQDPRphgWnAMibMXp7O8KdWhLERErhLiYlgDiR4+dXg6SEzIxy9DHcUMYv4vanujHXPAxi+EqATjuGJeS0oYRLCwnsKgJI6RsjMKpaZW6SIaqSkCRA1hiTTGSt1di+VyJlW3HxIDT41LLhyF+DQ72i0EXAk4ZqqVhrFWEvjY8QwRLsBP5tBTLUbNqnW5Kt7bNjT821nJGSEAA */
+  /** @xstate-layout N4IgpgJg5mDOIC5QFsCuAbALgSwA7rAGEAnSbTQgCzAGMBrAOhtInKtsYFEA7TMY7NygACAJLcAZgHtiyAIY4p3AMQBlVACNk5ANoAGALqJQuKbHLYlxkAA9EAZgAcAVgYB2ACwAmAIyO3zgA0IACeiD5ueu4AbM7RXs4AvonBaFh4BCRkFNT0TCxsuYwAavzYEiGCIlkQYLzYcuiwyhBKYAyCAG5SdO1pOPhEBTkc+dnseaUCFVXCNXU4jbAIXVI0Cpbc+gbb1qbmitzWdggAnB6u0Y72zqf2AcFhCAC0jgz20W5+AcmpGAOZYYTRjMcZFBhTcqVIRzFgLBpNZT8YgyBj4BTSWQMfoZIZg0ag1gjSZlGYw+b1JYrbjddaHba7JAgfYWKxMk56R6IPS-EA4wY1QoEoHg4FVQWYVQ0GRwFptBiwTAKPr-XES4FjIkasVCCVSmWwRkmMyso7sxBeDw+DwMLyxeJBUKIRx6aIMHz2LyOHwJXn8wH4vKEoV5HVQPXS0jNVrcdqK5XY1UCkXCwOMMMRg06HxGJksw7HRDOHyuZzONw3DzXbynK5cl63d6OK3OD6nWt6ZxeU5+pMBrXg4PE9NFcXDfVRhhhzgAR1Q2AA4nJOoIp6OhAAxGScGzYRVVABKYFMxEwctjHRpPXaYDni+XggAIgAhACCNEwMiNzJNBfNCArG0Ajcb0EnrH1nCApIUj5Ps8QHVMENDddw3HSM4DXDgqlneclxXbhMPoKot2IHc9xwIQjxPM8Y3aVZegYW9cIfbgX3fT9iGzXNjQOTZCwA+woJAiDwI8PQ3FtaC-nSZM001EMRyw3U0INQi6Gwu88NXMMSLI-dKOPGQz2RVF0UwTFkEYzSWLYj8v0MPZfz4-9APcctQMdJ4S2cHkYP9eCFPk4c1LHbIJww6drPwhgNzATAaEoQ9DNPc86KvBimPvfDYviyh2Ps7if14tlQBOa1BIYW57k88J7g8XsZP7QKh21FDM0nSLmOinKEqS6ikWIFFiDRdAMRkSzMq07geryuzOIcvMnJK2xwg8CqqoeJ0EGtXxKoagEAuClrRTalSOpQvCAFVuE2ELN23Xd9KgKijNSy9ugYqBl2uzZbI47982c0rEArHw3OEsCtoiHw3V9Py4PVQcU2QpTULC9DYDuqArpupQsd0x6KOe5KaPlej2i+zofqUP6vxzRzirNYGBLB4CPPAxwrjc-a1WRkE+ax9qIou77cYInSHvIvrXpM4azIshhKep1i3zmgGlqZlaWfB9mtq8PQfDBqTYMaw6NWO0YMzO4XUZx26ZullLaPe69FdFzYZvy+bCsB5ayu8UsXDuTavOuUsedkpD+bkq30dUsM7bxh2DP62WRrGrElbFz21YWnjTX4nbA42mrtsca4I6ao6BdjolwsxhPl1wMo5HFlCCallPXud8m3c6ZuBFb4EvfVxn+ICG1daeNw7kkyuzaRmPTrj87bablu29Rjunpep2yfSin18H7hh7V+nFrHlzIIYKfEHOVwfnh03EcQwLa-IeusbwgeGk3oj7tIoTR2xlBqmVGuZcafcf5DyKCPPORUC5X0niJKGehy57SfgdF+QYa7LzrhjL+R9f4xTir1Lue8Ly9wShwPCAAFDecCfYa0Lh4ECDA1ohzvj6DB0ksECwtijf+aN8HxxFv3DeJDcrAIGkNdOECsTUPoHQhhucmGX2ZtaNhHDS4dnntg6OUcGCPjivwbQN0hDiD4FGTAB5lQAHlcCHExsYqxZiqgAFlsAQAgAQcKb1e7k2eBoCAAArdAyBR6IOZnaSI7hBLVXAk4CSj9eG8zkgIxgLjTGCCqJY-gcAbH2McZsTGydnrKmjPvD6Kpn78IFlk2QOSLG8HyYqWxfAHFOMkWQ8pfBlirDpJsBk8DfaaxOPYH0NpojRDEg6RJ-hua8m4FIWo8AmT+X0QzKJWtni1nrM8LwFU9DdlOC6aItZoj2HsD2TBaTDEZK2X+Zmzwqz7OtG6SIkRPg+FOYbWsei6lyR4FY2Y4gLIbGWqM8e9gGCXK9CgryjYHQAvSQLSEZJqhwkpE0R5QMtbRAiG5a5rprQ+D0JWesNwJJiQ8OcF0kQrm0pRfc3BqMhZrPzk8rWCQJKOH1hMyGTwyxATcNEPQtKDaeFOF4ZlzVWVCPZVjHCWVBC4r9g4TsN9+UIvCDDalXhIicx8taFwbhZXVyXmy62DcULKqmvjSWO8SZqrGQ4VsWryU6u2j5G0EFzXm3lepZSK8bZCLtSxbpiVdRSGQIMPgLrC6fCiLS3w-hS4ek9Is1Jkc5WWoVdapVUVVxlN3pgBN-4yXXEqhDdNTgvBZpNnw1Feag3CI-gQzqKqCJlI3HIbABAIDlo0Um9h0rvjpp8m8FJja7m5sMe-SUHaxHKyHVrewmq+WesFeEeIbxpWGtiAbKs5Z-WL3nXg9toi15UzFg6wBndibUVXeM91m6BXptrJcOG2aq4BpbaFERq8hGJ27aQqN4YY1xrAM+ndzg3hVm0eBGeNpv0zpzRa89VqQ02uvcrSNwCYPbXEhJcsW703NhQ8bDZgLMP5uw4Qm99swPET7QOwjMM4PsObAkqGpxYmoeo822jrbFWN3EcfQj67XBvq9ZEVw+60GHpNSe256G-3CYA5eoDrbv4SIlvep1T6L7bJfTCmT26iPeFhQJhGNG34XsXVe4DRDW74ejbGgg8bjNcrKl8N44lb4IH8GDGztShP2aw4B0NOmXOgakeQst3m8VlR9DCz4tY031jHXPVTv6z0Rbo1FnDznxPEJ7axyA7G-MMAC16slrCcs-oXq-YKDS3HNKsQU9pYBOklMI14O0rMyPgR+byqstYEgwz0K6equXms4Lkm1ppUA8nWO671pQziTGNPMVATx3jfHoX6+u047hhtQxuFEULTaWWLe2+1lbLS1tFK6SWip-WXBvHHYky5jW0N5ZaxqJbu3VtdZeyUhg3XYC0JRCuWog6kvqoQFcrm0NMsXaZckRIQA */
   context: {
     SSN: "",
     FirstName: "",
@@ -97,19 +97,19 @@ export const creditCheckMachine = setup({
                 LastName: ({ event }) => event.output.lastName,
               }),
             },
-            // onError: [
-            //   {
-            //     target: "Entering Information",
-            //     actions: assign({
-            //       ErrorMessage: ({
-            //         event,
-            //       }: {
-            //         context: any;
-            //         event: { error: any };
-            //       }) => event.error.toString(),
-            //     }),
-            //   },
-            // ],
+            onError: [
+              {
+                target: "Entering Information",
+                actions: assign({
+                  ErrorMessage: ({
+                    event,
+                  }: {
+                    context: any;
+                    event: { error: any };
+                  }) => "Failed to verify credentials. Details: " + event.error,
+                }),
+              },
+            ],
           },
         },
 
@@ -122,7 +122,11 @@ export const creditCheckMachine = setup({
               states: {
                 CheckingForExistingReport: {
                   invoke: {
-                    input: {},
+                    input: {
+                      ssn: ({ context }: { context: { SSN: string } }) =>
+                        context.SSN,
+                      bureauName: "EquiGavin",
+                    },
                     src: "checkReportsTable",
                     id: "equiGavinDBActor",
                     onDone: [
@@ -177,7 +181,11 @@ export const creditCheckMachine = setup({
               states: {
                 CheckingForExistingReport: {
                   invoke: {
-                    input: {},
+                    input: {
+                      ssn: ({ context }: { context: { SSN: string } }) =>
+                        context.SSN,
+                      bureauName: "GavUnion",
+                    },
                     src: "checkReportsTable",
                     id: "gavUnionDBActor",
                     onDone: [
@@ -232,7 +240,11 @@ export const creditCheckMachine = setup({
               states: {
                 CheckingForExistingReport: {
                   invoke: {
-                    input: {},
+                    input: {
+                      ssn: ({ context }: { context: { SSN: string } }) =>
+                        context.SSN,
+                      bureauName: "Gavperian",
+                    },
                     src: "checkReportsTable",
                     id: "gavperianCheckActor",
                     onDone: [
