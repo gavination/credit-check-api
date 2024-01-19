@@ -1,9 +1,9 @@
 import { Snapshot, createActor } from "xstate";
 import bodyParser from "body-parser";
-import { collections, init } from "./dbService";
+import { collections, getDurableActor, initDbConnection } from "./actorService";
 import express from "express";
 import { creditCheckMachine } from "./machine";
-import { generateActorId } from "./machineLogic";
+import { get } from "http";
 
 const app = express();
 
@@ -14,20 +14,20 @@ app.use(bodyParser.json());
 // - Starts the actor
 // - Persists the actor state
 // - Returns a 201-Created code with the actor ID in the response
-app.post("/workflows", async (req, res) => {
-  const workflowId = generateActorId(); // generate a unique ID
-  const actor = createActor(creditCheckMachine).start();
-  // save persisted state to the db
-  const persistedState = actor.getPersistedSnapshot();
-  const result = await collections.machineStates?.insertOne({
-    workflowId,
-    persistedState,
-  });
-
-  if (!result) {
-    return res.status(500).send("Error starting workflow");
+app.post("/workflows", async (_req, res) => {
+  console.log("starting new workflow...");
+  try {
+    // Create a new actor and get its ID
+    const { workflowId } = await getDurableActor({
+      machine: creditCheckMachine,
+    });
+    res
+      .status(201)
+      .json({ message: "New worflow created successfully", workflowId });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Error starting workflow. Details: " + err);
   }
-  res.status(201).send({ workflowId });
 });
 
 // Endpoint to send events to an existing workflow instance
@@ -39,52 +39,25 @@ app.post("/workflows", async (req, res) => {
 // - Returns the updated state in the response
 app.post("/workflows/:workflowId", async (req, res) => {
   const { workflowId } = req.params;
-
-  // Hydrate the actor with the persisted state
-  const restoredState = await collections.machineStates?.findOne({
-    workflowId,
-  });
-
-  if (!restoredState) {
-    return res.status(404).send("Actor not found");
-  }
-
-  console.log("snapshot", restoredState);
-
   const event = req.body;
 
-  //todo: make this typing more concise
-  const actor = createActor(creditCheckMachine, {
-    state: restoredState?.persistedState,
-  }).start();
-
-  console.log("old state", restoredState?.persistedState);
-
-  actor.send(event);
-
-  // @ts-ignore
-  // Capture and save state after the event is sent and machine transitions
-  const persistedState = actor.getPersistedSnapshot();
-
-  console.log("new state", persistedState);
-
-  const result = await collections.machineStates?.replaceOne(
-    {
+  try {
+    const { actor } = await getDurableActor({
+      machine: creditCheckMachine,
       workflowId,
-    },
-    {
-      workflowId,
-      persistedState,
-    }
-  );
-  actor.stop();
-
-  // Ensure the state was persisted successfully
-  if (!result?.acknowledged) {
-    return res.status(500).send("Error sending event to workflow");
+    });
+    actor.send(event);
+  } catch (err) {
+    // note: you can (and should!) create custom errors to handle different scenarios and return different status codes
+    console.log(err);
+    res.status(500).send("Error sending event. Details: " + err);
   }
 
-  res.status(201).send("Event received. Issue a GET request to see the state");
+  res
+    .status(201)
+    .send(
+      "Event received. Issue a GET request to see the current workflow state"
+    );
 });
 
 // Endpoint to get the current state of an existing workflow instance
@@ -98,7 +71,7 @@ app.get("/workflows/:workflowId", async (req, res) => {
   });
 
   if (!persistedState) {
-    return res.status(404).send("Actor not found");
+    return res.status(404).send("Workflow state not found");
   }
 
   res.json(persistedState);
@@ -121,7 +94,7 @@ app.get("/", (_, res) => {
 });
 
 // Connect to the DB and start the server
-init().then(() => {
+initDbConnection().then(() => {
   app.listen(4242, () => {
     console.log("Server listening on port 4242");
   });

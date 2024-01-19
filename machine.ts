@@ -30,9 +30,8 @@ export const creditCheckMachine = setup({
       // ...
     }),
     verifyCredentials: fromPromise(
-      async ({ input }: { input: userCredential }) => {
-        return await verifyCredentials(input);
-      }
+      async ({ input }: { input: userCredential }) =>
+        await verifyCredentials(input)
     ),
     determineMiddleScore: fromPromise(async () => {
       // ...
@@ -90,20 +89,6 @@ export const creditCheckMachine = setup({
           invoke: {
             input: ({ event }) => event,
             src: "verifyCredentials",
-
-            onError: [
-              {
-                target: "Entering Information",
-                actions: assign({
-                  ErrorMessage: ({
-                    event,
-                  }: {
-                    context: any;
-                    event: { error: any };
-                  }) => event.error.toString(),
-                }),
-              },
-            ],
             onDone: {
               target: "CheckingCreditScores",
               actions: assign({
@@ -112,6 +97,19 @@ export const creditCheckMachine = setup({
                 LastName: ({ event }) => event.output.lastName,
               }),
             },
+            // onError: [
+            //   {
+            //     target: "Entering Information",
+            //     actions: assign({
+            //       ErrorMessage: ({
+            //         event,
+            //       }: {
+            //         context: any;
+            //         event: { error: any };
+            //       }) => event.error.toString(),
+            //     }),
+            //   },
+            // ],
           },
         },
 

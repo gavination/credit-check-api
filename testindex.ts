@@ -1,7 +1,6 @@
 import { createActor } from "xstate";
 import { creditCheckMachine } from "./machine";
 import { MongoClient, ServerApiVersion } from "mongodb";
-import { generateActorId } from "./machineLogic";
 
 (async () => {
   console.log("Testing the credit check machine");
@@ -24,13 +23,11 @@ import { generateActorId } from "./machineLogic";
     await client.connect();
 
     // create the actor and a workflowId
-    const workflowId = generateActorId();
-    const mediaScannerActor = createActor(creditCheckMachine);
-
-    mediaScannerActor.subscribe({
+    const creditCheckActor = createActor(creditCheckMachine);
+    creditCheckActor.subscribe({
       next: async () => {
         // save persisted state to the db
-        const persistedState = mediaScannerActor.getPersistedSnapshot();
+        const persistedState = creditCheckActor.getPersistedSnapshot();
         const updateDoc = {
           $set: {
             workflowId,
@@ -38,7 +35,7 @@ import { generateActorId } from "./machineLogic";
           },
         };
 
-        const result = await machineStateCollection.updateOne(
+        const result = await machineStateCollection.replaceOne(
           stateFilter,
           updateDoc,
           options
@@ -54,8 +51,8 @@ import { generateActorId } from "./machineLogic";
       complete: () => console.log("done"),
     });
 
-    mediaScannerActor.start();
-    mediaScannerActor.send({
+    creditCheckActor.start();
+    creditCheckActor.send({
       type: "Submit",
       SSN: "123456789",
       lastName: "Bauman",

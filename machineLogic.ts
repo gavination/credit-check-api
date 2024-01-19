@@ -11,6 +11,7 @@ export type userCredential = z.infer<typeof userCredentialSchema>;
 // this would be a great place to lookup the user in a database and confirm they exist
 // for now, we will just validate the input and return it
 export async function verifyCredentials(credentials: userCredential) {
+  console.log("Verifying Credentials...");
   try {
     userCredentialSchema.parse(credentials);
     return credentials;
@@ -73,9 +74,7 @@ export async function generateInterestRate(creditScore: number) {
   }
 }
 
-export function generateActorId() {
-  return Math.random().toString(36).substring(2, 8);
-}
+
 
 function sleep(ms: number) {
   return new Promise((resolve) => {
