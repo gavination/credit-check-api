@@ -1,5 +1,6 @@
 import { createMachine, fromPromise, assign, setup } from "xstate";
 import {
+  checkBureauService,
   checkReportsTable,
   determineMiddleScore,
   generateInterestRate,
@@ -22,9 +23,10 @@ export const creditCheckMachine = setup({
   },
 
   actors: {
-    checkBureau: fromPromise(async () => {
-      // ...
-    }),
+    checkBureau: fromPromise(
+      async ({ input }: { input: { ssn: string; bureauName: string } }) =>
+        await checkBureauService(input)
+    ),
     checkReportsTable: fromPromise(
       async ({ input }: { input: { ssn: string; bureauName: string } }) =>
         await checkReportsTable(input)
@@ -42,21 +44,24 @@ export const creditCheckMachine = setup({
     ),
   },
   actions: {
-    emailUser: function ({ context, event }, params) {
+    saveReport: (
+      { context }: { context: CreditProfile },
+      params: { bureauName: string }
+    ) => {
+      console.log("saving report to the database...");
+      saveCreditReport({
+        ssn: context.SSN,
+        bureauName: params.bureauName,
+        creditScore: context.EquiGavinScore,
+      });
+    },
+    emailUser: function ({ context }) {
       console.log(
         "emailing user with their interest rate options: ",
         context.InterestRateOptions
       );
     },
-    saveCreditReport: async function ({ context }, params) {
-      console.log("saving report to the database...");
-      await saveCreditReport({
-        ssn: context.SSN,
-        bureauName: params?.bureauName ?? "",
-        creditScore: context.EquiGavinScore,
-      });
-    },
-    saveCreditProfile: async function ({ context, event }, params) {
+    saveCreditProfile: async function ({ context }) {
       console.log("saving results to the database...");
       await saveCreditProfile(context);
     },
@@ -183,7 +188,7 @@ export const creditCheckMachine = setup({
                   type: "final",
                   entry: [
                     {
-                      type: "saveCreditProfile",
+                      type: "saveReport",
                       params: {
                         bureauName: "EquiGavin",
                       },
@@ -192,7 +197,10 @@ export const creditCheckMachine = setup({
                 },
                 FetchingReport: {
                   invoke: {
-                    input: {},
+                    input: ({ context: { SSN } }) => ({
+                      bureauName: "EquiGavin",
+                      ssn: SSN,
+                    }),
                     src: "checkBureau",
                     id: "equiGavinFetchActor",
                     onDone: [
@@ -247,7 +255,7 @@ export const creditCheckMachine = setup({
                   type: "final",
                   entry: [
                     {
-                      type: "saveCreditProfile",
+                      type: "saveReport",
                       params: {
                         bureauName: "GavUnion",
                       },
@@ -256,7 +264,10 @@ export const creditCheckMachine = setup({
                 },
                 FetchingReport: {
                   invoke: {
-                    input: {},
+                    input: ({ context: { SSN } }) => ({
+                      bureauName: "GavUnion",
+                      ssn: SSN,
+                    }),
                     src: "checkBureau",
                     id: "gavUnionFetchActor",
                     onDone: [
@@ -311,7 +322,7 @@ export const creditCheckMachine = setup({
                   type: "final",
                   entry: [
                     {
-                      type: "saveCreditProfile",
+                      type: "saveReport",
                       params: {
                         bureauName: "Gavperian",
                       },
@@ -320,7 +331,10 @@ export const creditCheckMachine = setup({
                 },
                 FetchingReport: {
                   invoke: {
-                    input: {},
+                    input: ({ context: { SSN } }) => ({
+                      ssn: SSN,
+                      bureauName: "Gavperian",
+                    }),
                     src: "checkBureau",
                     id: "checkGavPerianActor",
                     onDone: [
@@ -368,9 +382,14 @@ export const creditCheckMachine = setup({
                 id: "invoke-bdjlm",
                 onDone: [
                   {
-                    actions: assign({
-                      MiddleScore: ({ event }) => event.output,
-                    }),
+                    actions: [
+                      assign({
+                        MiddleScore: ({ event }) => event.output,
+                      }),
+                      {
+                        type: "saveCreditProfile",
+                      },
+                    ],
                     target: "FetchingRates",
                   },
                 ],
