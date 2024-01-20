@@ -1,5 +1,14 @@
 import { createMachine, fromPromise, assign, setup } from "xstate";
-import { userCredential, verifyCredentials } from "./services/machineLogicService";
+import {
+  checkReportsTable,
+  determineMiddleScore,
+  generateInterestRate,
+  saveCreditProfile,
+  saveCreditReport,
+  userCredential,
+  verifyCredentials,
+} from "./services/machineLogicService";
+import CreditProfile from "./models/creditProfile";
 
 export const creditCheckMachine = setup({
   types: {
@@ -9,58 +18,78 @@ export const creditCheckMachine = setup({
       lastName: string;
       firstName: string;
     },
-    context: {} as {
-      SSN: string;
-      LastName: string;
-      FirstName: string;
-      GavUnionScore: number;
-      EquiGavinScore: number;
-      GavperianScore: number;
-      ErrorMessage: string;
-    },
+    context: {} as CreditProfile,
   },
 
   actors: {
     checkBureau: fromPromise(async () => {
       // ...
     }),
-    checkReportsTable: fromPromise(async () => {
-      console.log("Checking for an existing report....");
-      return true;
-      // ...
-    }),
+    checkReportsTable: fromPromise(
+      async ({ input }: { input: { ssn: string; bureauName: string } }) =>
+        await checkReportsTable(input)
+    ),
     verifyCredentials: fromPromise(
       async ({ input }: { input: userCredential }) =>
         await verifyCredentials(input)
     ),
-    determineMiddleScore: fromPromise(async () => {
-      // ...
-    }),
-    generateInterestRates: fromPromise(async () => {
-      // ...
-    }),
+    determineMiddleScore: fromPromise(
+      async ({ input }: { input: number[] }) =>
+        await determineMiddleScore(input)
+    ),
+    generateInterestRates: fromPromise(
+      async ({ input }: { input: number }) => await generateInterestRate(input)
+    ),
   },
   actions: {
     emailUser: function ({ context, event }, params) {
-      // Add your action code here
+      console.log(
+        "emailing user with their interest rate options: ",
+        context.InterestRateOptions
+      );
     },
-    saveResults: function ({ context, event }, params) {
-      // Add your action code here
+    saveCreditReport: async function ({ context }, params) {
+      console.log("saving report to the database...");
+      await saveCreditReport({
+        ssn: context.SSN,
+        bureauName: params?.bureauName ?? "",
+        creditScore: context.EquiGavinScore,
+      });
+    },
+    saveCreditProfile: async function ({ context, event }, params) {
+      console.log("saving results to the database...");
+      await saveCreditProfile(context);
     },
     emailSalesTeam: function ({ context, event }, params) {
-      // Add your action code here
+      console.log(
+        'emailing sales team with the user"s information: ',
+        context.FirstName,
+        context.LastName,
+        context.InterestRateOptions,
+        context.MiddleScore
+      );
     },
   },
   guards: {
-    allSucceeded: ({ context, event }, params) => {
-      return false;
+    allSucceeded: ({ context }, params) => {
+      return (
+        context.EquiGavinScore > 0 &&
+        context.GavUnionScore > 0 &&
+        context.GavperianScore > 0
+      );
     },
-    "report found": ({ context, event }, params) => {
-      return false;
+    gavUnionReportFound: ({ context }) => {
+      return context.GavUnionScore > 0;
+    },
+    equiGavinReportFound: ({ context }) => {
+      return context.EquiGavinScore > 0;
+    },
+    gavperianReportFound: ({ context }) => {
+      return context.GavperianScore > 0;
     },
   },
 }).createMachine({
-  /** @xstate-layout N4IgpgJg5mDOIC5QFsCuAbALgSwA7rAGEAnSbTQgCzAGMBrAOhtInKtsYFEA7TMY7NygACAJLcAZgHtiyAIY4p3AMQBlVACNk5ANoAGALqJQuKbHLYlxkAA9EAZgAcAVgYB2ACwAmAIyO3zgA0IACeiD5ueu4AbM7RXs4AvonBaFh4BCRkFNT0TCxsuYwAavzYEiGCIlkQYLzYcuiwyhBKYAyCAG5SdO1pOPhEBTkc+dnseaUCFVXCNXU4jbAIXVI0Cpbc+gbb1qbmitzWdggAnB6u0Y72zqf2AcFhCAC0jgz20W5+AcmpGAOZYYTRjMcZFBhTcqVIRzFgLBpNZT8YgyBj4BTSWQMfoZIZg0ag1gjSZlGYw+b1JYrbjddaHba7JAgfYWKxMk56R6IPS-EA4wY1QoEoHg4FVQWYVQ0GRwFptBiwTAKPr-XES4FjIkasVCCVSmWwRkmMyso7sxBeDyOaIMHweSJ3ZyODx6e5BUKIa42056Hx6f1WgI+ZweXn8wH4vKEoV5HVQPXS0jNVrcdqK5XY1UCkXCyOMOMJg06HxGJksw7HRDOYMMZzONw3K32bynK5cl63d7O4MfU6tvTOLynMNZiNa8HR4n5ori4b6pMMOOcACOqGwAHE5J1BIuZ0IAGIyTg2bCKqoAJTApmImDlqY6NJ67TAq43W8EABEAEIAQRomBkI1mRNCtzQQAJTneH1YjrPRvC8RxHHbHwELeFDLRuPsh1ONwR3SbM801GNpw4WdsnnOBd1IoQVzXTdt24Kj6CqQ9iGPU8cCES9r1vFN2lWXoGBfOj324b8-wA4hi1LY0Dk2StwM7exoLrZw4K8VDkI8F0GHiDDblObDcJSPlRzxcdcws2M93jOdE0opdX3onc41Y9izy4q8ZFvZFUXRTBMWQISnNE8T-0Aww9hA+SwIgqC9BgtT4MQ5CnXsd43H0rC+2Mv58LHYiiKnJi6DIokKNgEqqlot8GIYfcwEwGhKAvLybzvfjH0E4TasEBqmsoCSIpk4C5LZUATjtRxIM+J0fBQyIEjtLS9C8Wsbi8Nw3GtWbolDEzw3MwrJ21GzCwXRyRLq-rmtanikWIFFiDRdAMRkIKeuc7gbsG8KpMistovG2xwg8H13g8ewfCh6t5r0U53SeO063WvbTmdRxLW8PCASO4qTtFM67INKqhHogBVbhNlJqA3JPDyoG47yOofbpBKgLdKc2MLJKA8sYomxAAhtSI4kQvRHH9LxomiZDtp8d5m1uXsvD0SJctM-K8Y1AnRgLYmLpsimqaUGm6Y4u7mb41mnwYDnOi5pQecAksorGs1BcUkWByuSXJdWmXkLudLrguO5okMtW1ZxtUcyjOOSOY3UDYco3OZNxjXKPenOMZtqfMevzXoC967fT7nfz+vmgY9kGvfcH3xf96XZY9BBVbcG0nTDlWo6SA6zPVCcE5p87U+oqBjepn7Lfa62BPae3He+xrmqG-6Rv54HJo8WIGASZSfZ8c5zlbpHpsg4-ts8VsPHm4+Y4IqyQRH-XyPsyq4yn02Z88+7fOev5QKZcHYZx+uvau7sFJ2j3oZdCTpoiukHG4IOYN3DqzUtNPw9hLSPwKvjV+RN34ky-luXAZQ5CZxsubBmTM57ygXiA8hAhKHAggQDWSpoFLbSiHWXe-h4YS2Uu2barhLT+GwYhaa9Y8Ha2HoRN+5UP403oswhoVCJ40NznQ3iDCuqLzIRQ7gbCq6u0BlA2KktawhiuA6IRpx2x3DcO4QMkjEIIw1odIellCqKPIBVFRhiWEaKTrTbOFs-7MwAS9N6WJ7ZqNYUUdhm8a7cKsXw2xgjrgOLbn6KxYMJHXCkR42R3j44KKIUokhadOgJMYr-PO91576KYEUeiAAFIxyS3ZcLAsGOCto3CtgET6bJjiBkFK+EU9xMiB5azKS-CpE8x6fxqXU+qq8WqRPatEoBpdmocA6V0quHDRq9M9v0jwgzhl2LGW3BGCs+yFKcDMzxg8R66zyB+Rq-BtBUyEOIPgSZMDnmVAAeVwIcSq3ygV-KqAAWWwBACABAKIs0YQvZ4GgIAACt0DIEgecuuODMYMAuFDYMm0I53C8O2RCziGyQxwTcTKXgbilI+SPGFvzBBVEBfwOAILwWQs2JVBpoK+DJj0WzFU8zOWEW5bIXlALeACsVBKsAEKoUbIGheZUyxVh0k2AyU5W9a4nHuB8LsCFVpbWpTgul-h3DNnsMy+sGl2W8m4FIWo8AmReITj00CntnitnbM8NlVzVpPISq2aIrrhxzNxgsoqwIg0Czrs8K04aYEN0iJ8Y+jh5qtg5YRT5XBVUCBhOIQKGxgZmu4eleNCEUKI3CJ2eI-c8rJvlc-CEpJoTVDhJSJo6bt6IGiBEdwzhD6Trvkgjw7YWVkrgucSWkRXVg1LX28to8U5+s4cGuuCE1rkuDLBZKLh2w2PQfaH0Q4LhfG3cdQhyz900xql9Md5qHD2CiGe1S6lUJtoQChf07g+yDktOcK0m1n0EKWaElZH6Qp1SzmxHOs9MDfoUvcN4AGL0aUQiBnsziwaeEwoZHK8GdavqQ++y6vV6mbPFFIZAgw+A4b6ZlN4vo2W3CEQlHwyEbiuClnEKGRHZo0fkX2vxkplGMa+jq262zsPmKJZNaGM0PieH8CGTKCMtI1jdHBbBCRpYyZ8cVeTASlOiRU1s2mchsAEAgFxi5Xw1qqz8ChHu8bUqQ1tH4QcOFNo+D2l2zWPay10dKsnYhhsJ7f1rg2sCrqoidyLU3KWsQz7hAjlG+aVxfSOjiF4Kz5S5OVP8Ypmpy8zbhNofnDzxLtoxGy37XLcR2yqz-Q3BG4dI7q0q4s6rb7Evj1CSlxzrH2MEE4xpo9k0vhRDK1tBahkUG5OuOlAcvhI0JUK-tbtsdYuIfi7ZSbqzkvlx-ixtTrWtPHzJU4TK-p7h7QuEHCWtYJGQZhpB0bqbCYTaqUl6bd3mO6oPC5tzT3whef3r6ItlplbxCQrknCzibjNkZZ3U480KtJrOzuuLZVavVNu7UoxCOECuvSpaDSVp4ZUb2vYdsEdnGGSdJtLaLg9rRGB7u2zdXqfrPQ+5bRLWlsZotUW-e8EWfZXZ8hOC-6Ea720sy+a9hhfk4S+Dqbl3VFGNm7qNjHGwB04iEFzGrowOjOEW3a0jPXHTOkW8uV53xv0eu4EmnwTzeNO8jbu0kFvDfDDvYxx0NFfPOKbM07T8X0XYpwpqnkPA-qOD-uOHkAbcR1cK210A4gMpVya6SC4ipkvOkSd6LpPU99sVXClVQLBUaq1aKunCEGxkt8NaZB9raVty5wwXbD7-A4OwvrhVPylX-KgPy4FXeRVKGhQvtvUBEXItRfZXvcCB9+FiFSvsDqXdqX3i6t1rLPXJ-wbR+fsLlXL8rZ34V2rxX6rp82CODBoJLRbUR86V41r8mV+M78osA0fdCpW9X8V8P8+Bu8N8GANVYB2kURtxah3NZdx16ccJIJpohNh9z9R8ngMYADnRXVICPV+5kggA */
+  /** @xstate-layout N4IgpgJg5mDOIC5QFsCuAbALgSwA7rAGEAnSbTQgCzAGMBrAOhtInKtsYFEA7TMY7NygACAJLcAZgHtiyAIY4p3AMQBlVACNk5ANoAGALqJQuKbHLYlxkAA9EAZgAcAVgYB2ACwAmAIyO3zgA0IACeiD5ueu4AbM7RXs4AvonBaFh4BCRkFNT0TCxsuYwAavzYEiGCIlkQYLzYcuiwyhBKYAyCAG5SdO1pOPhEBTkc+dnseaUCFVXCNXU4jbAIXVI0Cpbc+gbb1qbmitzWdggAnB6u0Y72zqf2AcFhCAC0jgz20W5+AcmpGAOZYYTRjMcZFBhTcqVIRzFgLBpNZT8YgyBj4BTSWQMfoZIZg0ag1gjSZlGYw+b1JYrbjddaHba7JAgfYWKxMk56R6IPS-EA4wY1QoEoHg4FVQWYVQ0GRwFptBiwTAKPr-XES4FjIkasVCCVSmWwRkmMyso7sxBeDz+BgeU7OG56DwePTOZwuLkIa7RBiOFynPT2QNuaL2U6OXn8wH4vKEoV5HVQPXS0jNVrcdqK5XY1UCkXC6OMBNJg06HxGJksw7HRDOHyuV1uG5W+zeU5XD3PW7vRweOsfU5tl1eU4RnNRrXg2PEwtFcXDfUphgJzgAR1Q2AA4nJOoIl7OhAAxGScGzYRVVABKYFMxEwcvTHRpPXaYDXm+3ggAIgAhACCNEwGQjWZE0q3NBAAlOd5-ViV1HS8LxfQ9HxELeFDLRuAdh1ONxR3SXMC01OMZw4OdsgXOA91IoRV3XLcd24Kj6CqI9iBPM8cCEK8bzvNN2lWXoGFfOiP24H9-0A4hS3LY0Dk2asIK7UM9Fg5x4NQ5CnSieIMNuU5sNwlI+THPEJ3zMz433RN52TSjlzfejdwTVj2PPLjrxkO9kVRdFMExZAhIc0TxIAoDDD2UD5PAyDoJU101O8DTQnCN17HeNxdKwgdDL+fDx2IojpyYugyKJCjYGKqpaPfBiGAPMBMBoShLw829734p9BOEmrBHqxrKAksKZJAuS2VAE4fCtKDPjdHwUMiBJJs0vQvAYe1nC8Nw3EcaIZuiDw8IBUyCqnbUrOLRd7JE2q+qalqeKRYgUWINF0AxGQAu6xzuFugbQqk8KK0isbbHCW0ohbewfCh2s5r0O1NNdNaPltHtHEtbxDrVPMYxxkjmN1GyDUqoR6IAVW4TYSagFzTzcqBuM89rH26QSoG3CnNhCyTgMrKLxsQAJvUiOJfT0Rw9BW3bkO2nx3hbW5+y8PRIhy4y8uOorTtFc6icuqzycppRqdpjj7qZviWefBh2c6TmlG5oCywi0azQFxThZdK4JYlqXomQu40uuC47mifSVZVrGCIskE8epi67INjmjcY5zjzpziGdarynp8t6-I+m3k65v9-t54G3dBj33C9sXfa8aXkoQZXgzWntFbDluXSj-Ktbjos9cT6ioENqnfvNtrLYE9pbftn6GqawaAeGvmQYmjxYgYBJlLiHxznOf2m78AcGD37bPDbXs5pHIzI01jVtdGAfyNsiqE1H43x-ch7vJe3z-KLnbFOv0l7l1dgpSam99LoTdNEAMG03AB1tO4VWalHCnD8PYS0Pd76Tn7rrF+xN37blwGUOQqcrKm3pozSe8pp6ANIQIchwJQGA1kqaBS20oiug3v4eG4tQwem2q4S0-hMG+nQc4NWd91R4MIs-Mqr9qb0UYQ0Chw8qGZxobxOhnUZ4kLIdwFhZdnZA3AdFCWa1nC8MiP6a4pwPR3DcO4K0XxrgSLtNIkysjzIFQUeQcqyiDFMPUQTGm6czbfyZr-V670sS21UcwoorCV4VwgUOBg8MPj2D0D4XJUMVbIRVqtFsvZcnw1tF4D4OCfG43kQQxRRCk6dESYxL+WcHpTz0UwIo9EAAKhiUkuw4eBOsjpT5uDbHwuxgim7+g8DaMMbinC+k8TUuOj9LLDwTm-ZprS6oL2alEtqMT-6Fyahwfpgyy5sJGiM92YyFkRCmbYgRDi5m1gYAOMR7jVlSPWYRTZjBPwNX4NoSmQhxB8BTJgC8yoADyuBDgVRBdC8FVQACy2AIAQAIBRZm9Dp7PA0BAAAVugZAYD7lVywZ8BgYddqIVyT4K4h8ng7VcJLJxsD-A7WiACmOhUNSorBYIKoUL+BwFhQipFmwKrtLhXwVMujWYqg1rU2OhERWyDFZC3gkrFSKrAIi5FBz+qXmVMsVYdJNgMluavSuJx7h73pREFwLYcIYw9L6ZxjYPCBiqVIhCNxkhGW4FIWo8AmQyLxsMsC7tnhtg7FUtKUiWW7WDsrdG9gBUnVjWY6lJxnhWg7JAm0W1-Ti3FiywMObb7eI2XHHg0LZjiH8hsEGDrOFpRDIhFCQQj5dniEket6rG2EUhGSaocJKRNDjfzKu0QIjuHtDBSaeSmwehuM450torQR0DLaXNfd6nbMHlG9h8aq59vlk4KpG87T6RuB6axO6l11nDp8VWx6H74LPYQ-Ww9qrfXnWvBww5b3ZofbcQNyFlZyxWhyvJe7YheB-XIwV-jJRKKuj1UJJVDwROodnUDjqHBbUg-esOMHn2DvuD6T1dYrQoV3eh3xRUsOBNw99M1d1dRSGQIMPgpGIEZTeLkwNMyVI+GQjcTlK04hQwQjtH4o6joaqFTrf9jTANhOA6JXjRyOmeRE6M6G00PieH8K+4cA6njrtcPcBKmCEgNzY3UzDDSAk4asvpm6hyWJyGwAQCApmHlfFWvBxwLGO72GQtYtKc0XDDgyl8faI7crqfHZ57T3mmnDw-pXLt4FAxRGDNFuuksG5xGQmHBZloq3+CtKu9zmqcthJ2UEoBVM05sQzhPTAYWaXbRiBVn2VXYhsotAGVaKkviNhVnEEMrXNNPy89h-LYTCuGfFAJoTYAhsTS+FEO4DYIuTM2sha4aUhwoRbCpOrB01PY0BX+jr56utzx28cwbBar0TWvjaJwGVJb3H2hcAO4s25fAHPaD9doVtAvjh94h3XP4BcPEFkLh3wgRa3rk6LloO6IQDhRm4LY-XBgwShRHb2CPWQA0PLbwS1E44QLWreiV91ZX2nFpuYc0LWMDk6e0IYb6ZZe4KpHnGfMFZZ+Qk2RGtEkb+wup10XOcIW5-pS+fP7OOiiLaax4OsFQ2hrT0973Ge7Lly0wx33Ex7YIMJ1XYGEARH9T6ZWSn+H2O9SGTnPyVmSK8WO17lv6eddR-shVKvL1q-CJNKC3hvghzeY46GgflkeP+c96OeaI+lTy7p+nKj7ftIPFjyAbOWV2lPgkAMLp1JISPgGKCojs9-KexL-PJ7BXavRXq6FUqjUmrlWzxCcR6VxAwXpDKToPQC63v6W4q+PiOh8Bb-voKdUQqgBKmFo-ZVKBRTvwfUAsU4rxbZCf8zp9h3h-Pjw3q1Jb0hqboNgat8FQH7q-f+rD8ZVTUFVLU2cFZEtexhx4ZPUF8m4do0p70A1t1g0Mt1Ystw9t80U-8D8R8gC5UGAjVYA+kUQdxahQtXcyN2c2xEsEhdo58vU4CrQvkewkDP8Q1Q0gA */
   context: {
     SSN: "",
     FirstName: "",
@@ -69,6 +98,8 @@ export const creditCheckMachine = setup({
     EquiGavinScore: 0,
     GavperianScore: 0,
     ErrorMessage: "",
+    MiddleScore: 0,
+    InterestRateOptions: [],
   },
   id: "multipleCreditCheck",
   initial: "creditCheck",
@@ -122,17 +153,20 @@ export const creditCheckMachine = setup({
               states: {
                 CheckingForExistingReport: {
                   invoke: {
-                    input: {
-                      ssn: ({ context }: { context: { SSN: string } }) =>
-                        context.SSN,
+                    input: ({ context: { SSN } }) => ({
                       bureauName: "EquiGavin",
-                    },
+                      ssn: SSN,
+                    }),
                     src: "checkReportsTable",
                     id: "equiGavinDBActor",
                     onDone: [
                       {
+                        actions: assign({
+                          EquiGavinScore: ({ event }) =>
+                            event.output?.creditScore ?? 0,
+                        }),
                         target: "FetchingComplete",
-                        guard: "report found",
+                        guard: "equiGavinReportFound",
                       },
                       {
                         target: "FetchingReport",
@@ -146,10 +180,15 @@ export const creditCheckMachine = setup({
                   },
                 },
                 FetchingComplete: {
-                  entry: {
-                    type: "saveResults",
-                  },
                   type: "final",
+                  entry: [
+                    {
+                      type: "saveCreditProfile",
+                      params: {
+                        bureauName: "EquiGavin",
+                      },
+                    },
+                  ],
                 },
                 FetchingReport: {
                   invoke: {
@@ -169,9 +208,6 @@ export const creditCheckMachine = setup({
                   },
                 },
                 FetchingFailed: {
-                  entry: {
-                    type: "updateErrorMessage",
-                  },
                   type: "final",
                 },
               },
@@ -181,17 +217,20 @@ export const creditCheckMachine = setup({
               states: {
                 CheckingForExistingReport: {
                   invoke: {
-                    input: {
-                      ssn: ({ context }: { context: { SSN: string } }) =>
-                        context.SSN,
+                    input: ({ context: { SSN } }) => ({
                       bureauName: "GavUnion",
-                    },
+                      ssn: SSN,
+                    }),
                     src: "checkReportsTable",
                     id: "gavUnionDBActor",
                     onDone: [
                       {
+                        actions: assign({
+                          GavUnionScore: ({ event }) =>
+                            event.output?.creditScore ?? 0,
+                        }),
                         target: "FetchingComplete",
-                        guard: "report found",
+                        guard: "gavUnionReportFound",
                       },
                       {
                         target: "FetchingReport",
@@ -205,10 +244,15 @@ export const creditCheckMachine = setup({
                   },
                 },
                 FetchingComplete: {
-                  entry: {
-                    type: "saveResults",
-                  },
                   type: "final",
+                  entry: [
+                    {
+                      type: "saveCreditProfile",
+                      params: {
+                        bureauName: "GavUnion",
+                      },
+                    },
+                  ],
                 },
                 FetchingReport: {
                   invoke: {
@@ -228,9 +272,6 @@ export const creditCheckMachine = setup({
                   },
                 },
                 FetchingFailed: {
-                  entry: {
-                    type: "updateErrorMessage",
-                  },
                   type: "final",
                 },
               },
@@ -240,17 +281,20 @@ export const creditCheckMachine = setup({
               states: {
                 CheckingForExistingReport: {
                   invoke: {
-                    input: {
-                      ssn: ({ context }: { context: { SSN: string } }) =>
-                        context.SSN,
+                    input: ({ context: { SSN } }) => ({
                       bureauName: "Gavperian",
-                    },
+                      ssn: SSN,
+                    }),
                     src: "checkReportsTable",
                     id: "gavperianCheckActor",
                     onDone: [
                       {
+                        actions: assign({
+                          GavperianScore: ({ event }) =>
+                            event.output?.creditScore ?? 0,
+                        }),
                         target: "FetchingComplete",
-                        guard: "report found",
+                        guard: "gavperianReportFound",
                       },
                       {
                         target: "FetchingReport",
@@ -264,10 +308,15 @@ export const creditCheckMachine = setup({
                   },
                 },
                 FetchingComplete: {
-                  entry: {
-                    type: "saveResults",
-                  },
                   type: "final",
+                  entry: [
+                    {
+                      type: "saveCreditProfile",
+                      params: {
+                        bureauName: "Gavperian",
+                      },
+                    },
+                  ],
                 },
                 FetchingReport: {
                   invoke: {
@@ -287,9 +336,6 @@ export const creditCheckMachine = setup({
                   },
                 },
                 FetchingFailed: {
-                  entry: {
-                    type: "updateErrorMessage",
-                  },
                   type: "final",
                 },
               },
@@ -314,15 +360,17 @@ export const creditCheckMachine = setup({
           initial: "DeterminingMiddleScore",
           states: {
             DeterminingMiddleScore: {
-              exit: {
-                type: "updateMiddleScore",
-              },
               invoke: {
-                input: {},
+                input: ({
+                  context: { EquiGavinScore, GavUnionScore, GavperianScore },
+                }) => [EquiGavinScore, GavUnionScore, GavperianScore],
                 src: "determineMiddleScore",
                 id: "invoke-bdjlm",
                 onDone: [
                   {
+                    actions: assign({
+                      MiddleScore: ({ event }) => event.output,
+                    }),
                     target: "FetchingRates",
                   },
                 ],
@@ -330,7 +378,7 @@ export const creditCheckMachine = setup({
             },
             FetchingRates: {
               invoke: {
-                input: {},
+                input: ({ context: { MiddleScore } }) => MiddleScore,
                 src: "generateInterestRates",
                 onDone: [
                   {

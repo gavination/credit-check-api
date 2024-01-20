@@ -5,16 +5,9 @@ export default class CreditReport {
   ssn: string;
   bureauName: string;
   creditScore: number;
-  interestRate: number;
-  constructor(
-    ssn: string,
-    bureauName: string,
-    creditScore: number,
-    interestRate: number
-  ) {
+  constructor(ssn: string, bureauName: string, creditScore: number) {
     this.ssn = ssn;
     this.bureauName = bureauName;
     this.creditScore = creditScore;
-    this.interestRate = interestRate;
   }
 }

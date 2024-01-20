@@ -2,7 +2,12 @@ import * as mongoDB from "mongodb";
 import { AnyStateMachine, createActor } from "xstate";
 import { creditCheckMachine } from "../machine";
 
-export const collections: { machineStates?: mongoDB.Collection } = {};
+// mongoDB collections
+export const collections: {
+  machineStates?: mongoDB.Collection;
+  creditReports?: mongoDB.Collection;
+  creditProfiles?: mongoDB.Collection;
+} = {};
 
 // Initialize DB Connection and Credit Check Actor
 export async function initDbConnection() {

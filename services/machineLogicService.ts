@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { collections } from "./actorService";
+import CreditReport from "../models/creditReport";
+import CreditProfile from "../models/creditProfile";
 
 const userCredentialSchema = z.object({
   firstName: z.string().min(1).max(255),
@@ -28,6 +31,9 @@ export async function determineMiddleScore(scores: number[]) {
   return scores[1];
 }
 
+// this is where we would check the database to see if we have an existing report for this user
+// note: in real-world scenarios, you'd want to check the date of the report to see if it's stale
+// for this sample, we will just return the report if it exists
 export async function checkReportsTable({
   ssn,
   bureauName,
@@ -35,9 +41,17 @@ export async function checkReportsTable({
   ssn: string;
   bureauName: string;
 }) {
-  // this is where we would check the database to see if we have a report for this user
-  // for now, we will just return a boolean
-  return false;
+  console.log("Checking for an existing report....");
+  try {
+    const report = await collections.creditReports?.findOne({
+      ssn,
+      bureauName,
+    });
+    return report as CreditReport | undefined;
+  } catch (err) {
+    console.log("Error checking reports table", err);
+    throw err;
+  }
 }
 
 // simulates a potentially long-running call to a bureau service
@@ -62,7 +76,9 @@ export async function checkBureauService({
   }
 }
 
-// this can indeed be a very long-running service, typically one that won't be local to the application
+// this can indeed be a very long-running service,
+// typically one that won't be local to the application
+// for this sample, we will just simulate a long-running call
 export async function generateInterestRate(creditScore: number) {
   await sleep(range({ min: 1000, max: 10000 }));
   if (creditScore > 700) {
@@ -74,7 +90,37 @@ export async function generateInterestRate(creditScore: number) {
   }
 }
 
-
+// saves the specific credit report to the database, by SSN and bureau name
+export async function saveCreditReport(report: CreditReport) {
+  try {
+    await collections.creditReports?.replaceOne(
+      {
+        ssn: report.ssn,
+        bureauName: report.bureauName,
+      },
+      report,
+      { upsert: true }
+    );
+  } catch (err) {
+    console.log("Error saving credit report", err);
+    throw err;
+  }
+}
+// saves the entire credit credit profile to the database
+export async function saveCreditProfile(profile: CreditProfile) {
+  try {
+    await collections.creditProfiles?.replaceOne(
+      {
+        ssn: profile.SSN,
+      },
+      profile,
+      { upsert: true }
+    );
+  } catch (err) {
+    console.log("Error saving credit profile", err);
+    throw err;
+  }
+}
 
 function sleep(ms: number) {
   return new Promise((resolve) => {
