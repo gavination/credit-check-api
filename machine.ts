@@ -386,7 +386,6 @@ export const creditCheckMachine = setup({
           description:
             "After retrieving results, determine the middle score to be used in home loan interest rate decision",
           initial: "DeterminingMiddleScore",
-          type: "final",
           states: {
             DeterminingMiddleScore: {
               invoke: {
@@ -394,7 +393,7 @@ export const creditCheckMachine = setup({
                   context: { EquiGavinScore, GavUnionScore, GavperianScore },
                 }) => [EquiGavinScore, GavUnionScore, GavperianScore],
                 src: "determineMiddleScore",
-                id: "invoke-bdjlm",
+                id: "scoreDeterminationActor",
                 onDone: [
                   {
                     actions: [
@@ -416,6 +415,9 @@ export const creditCheckMachine = setup({
                 src: "generateInterestRates",
                 onDone: [
                   {
+                    actions: assign({
+                      InterestRateOptions: ({ event }) => [event.output],
+                    }),
                     target: "RatesProvided",
                   },
                 ],
