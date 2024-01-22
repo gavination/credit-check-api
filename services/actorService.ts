@@ -65,6 +65,7 @@ export async function getDurableActor({
       // on transition, persist the most recent actor state to the db
       // be sure to enable upsert so that the state record is created if it doesn't exist!
       const persistedState = actor.getPersistedSnapshot();
+      console.log("persisted state", persistedState);
       const result = await collections.machineStates?.replaceOne(
         {
           workflowId,
